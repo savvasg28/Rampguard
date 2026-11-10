@@ -116,7 +116,7 @@ In `record` the same names hold typed values: `version-codes`, `ready-to-publish
 percentages are numbers, and a value that does not apply is `null`. It also carries `app`, `command`, `at`, `dry-run`,
 `decision` and `notes`.
 
-Every output is always set, empty when it does not apply. The names, including the field names inside `record`, are a
+`tick` and `halt` set every output, empty when it does not apply; `status` and `validate` set none. The names, including the field names inside `record`, are a
 contract: they are added, never renamed.
 Steps for Slack, Sentry releases, Datadog events and Grafana annotations are in
 [`examples/notify/`](examples/notify/README.md).

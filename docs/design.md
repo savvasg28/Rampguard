@@ -99,7 +99,8 @@ The outputs are layered so that the common case costs one expression: `summary` 
 conditions and tool inputs, `record` for everything else. A new value goes into `record` first and becomes a flat
 output only when workflows need it in an `if:`.
 
-Every output is always written, empty when it does not apply, so a workflow expression never meets an undefined value.
+`tick` and `halt` write every output, empty when it does not apply, so a workflow expression never meets an undefined
+value. `status` and `validate` write no outputs; `status` prints its JSON on stdout instead.
 The names are a contract: add outputs, never rename them. The same holds for the field names inside `record`. Because runs keep no memory, a release that waits for a
 person appears in `ready-to-publish` on every run that sees it; the workflow decides whether to remind people daily.
 

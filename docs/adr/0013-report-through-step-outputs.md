@@ -20,7 +20,7 @@ Rampguard's halt side already works this way: it is a `repository_dispatch`, not
 Rampguard talks to nothing but Play. A run produces one decision record, and the CLI renders it three ways: text on
 stdout, the same text in the job summary, and GitHub step outputs. The action declares the outputs: `event`,
 `release-name`, `version-codes`, `from-percent`, `to-percent`, `reason`, `source`, `ready-to-publish`, `rejected`.
-Every output is always set, empty when it does not apply. The names are a contract: add, never rename.
+`tick` and `halt` set every output, empty when it does not apply; `status` and `validate` set none. The names are a contract: add, never rename.
 
 Notifying is the workflow's job. `examples/notify/` carries working steps for Slack, Sentry, Datadog and Grafana,
 each gated on the outputs and each holding its own secret. The example workflows themselves contain only the
