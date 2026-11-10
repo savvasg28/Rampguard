@@ -173,6 +173,24 @@ class ScenarioTest {
         }
 
     @Test
+    fun `halt with several version codes halts when any of them is live`() =
+        runTest {
+            val sim = start()
+            sim.halt(versionCodes = listOf(998, 999))
+            sim.halt(versionCodes = listOf(100, 101), source = "workflow")
+
+            sim.timeline shouldContainExactly
+                listOf(
+                    entry(
+                        "2026-03-02T09:00:00Z",
+                        "NoOp(none of versionCodes 998,999 is the active rollout (v101[101]))",
+                    ),
+                    entry("2026-03-02T09:00:00Z", "Halt(halt requested by workflow: alert)"),
+                )
+            sim.play.writes shouldContainExactly listOf("halt v101[101]")
+        }
+
+    @Test
     fun `halt with no active rollout is a no-op`() =
         runTest {
             val sim = Simulation(Fixtures.policy())

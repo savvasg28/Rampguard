@@ -56,9 +56,14 @@ A manual run of the tick workflow does exactly what a scheduled run does.
 
 ### `halt`
 
-The run halts the live release in Play if the requested `versionCode` is one of its version codes. If the version code
-belongs to another release, or the release is already halted, the run does nothing. The `reason` and `source` fields
-are untrusted text: the run removes control characters, collapses whitespace and truncates them before use.
+The run halts the live release in Play if any requested version code is one of its version codes, so a workflow can
+pass the `version-codes` output as it is. If the version codes belong to another release, or the release is already
+halted, the run does nothing. The `reason` and `source` fields are untrusted text: the run removes control characters,
+collapses whitespace and truncates them before use.
+
+The version code is spelled `version-code` in every place a person or a tool writes it: the action input, the CLI
+option and the `repository_dispatch` payload. The payload's older key `versionCode` is still accepted. The output is
+`version-codes`, plural, because a release can ship several.
 
 ### `status`
 

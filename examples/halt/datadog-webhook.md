@@ -21,7 +21,7 @@ Payload:
   "client_payload": {
     "source": "datadog",
     "reason": "$ALERT_TITLE",
-    "versionCode": "$ALERT_SCOPE"
+    "version-code": "$ALERT_SCOPE"
   }
 }
 ```

@@ -129,10 +129,10 @@ Send a `repository_dispatch` event to the app repository:
 curl -X POST https://api.github.com/repos/OWNER/REPO/dispatches \
   -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/vnd.github+json" \
-  -d '{"event_type":"rollout-halt","client_payload":{"source":"sentry","reason":"crash spike","versionCode":101}}'
+  -d '{"event_type":"rollout-halt","client_payload":{"source":"sentry","reason":"crash spike","version-code":101}}'
 ```
 
-The command workflow halts the release in Play if `versionCode` belongs to the live release. A second halt, or a halt
+The command workflow halts the release in Play if `version-code` belongs to the live release. A second halt, or a halt
 for another version code, does nothing. A person can also halt from the Actions tab.
 
 Anyone whose token can dispatch to the repository can halt the rollout. Use a fine-grained token per sender.

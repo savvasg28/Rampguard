@@ -118,6 +118,13 @@ class CommandsTest {
     }
 
     @Test
+    fun `halt takes the version-codes output as it is`() {
+        val result = run("halt", "--version-code", "100,101", "--source", "workflow")
+        result.statusCode shouldBe EXIT_OK
+        play.writes shouldContainExactly listOf("halt v101[101]")
+    }
+
+    @Test
     fun `status prints JSON and fails only when Play is unreadable`() {
         val result = run("status")
         result.statusCode shouldBe EXIT_OK

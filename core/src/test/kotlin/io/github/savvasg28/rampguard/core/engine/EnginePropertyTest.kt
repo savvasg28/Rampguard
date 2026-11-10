@@ -94,11 +94,12 @@ class EnginePropertyTest {
     @Test
     fun `halt only halts the release whose version code was asked for, and only once`() =
         runTest {
-            checkAll(iterations, arbPolicy, Arb.long(90L..110L)) { policy, code ->
+            checkAll(iterations, arbPolicy, Arb.list(Arb.long(90L..110L), 1..3)) { policy, codes ->
                 checkAll(1, arbObservation(policy)) { obs ->
-                    val verdict = Engine.decideHalt(policy, obs, HaltRequest(code, "r", "s"))
+                    val verdict = Engine.decideHalt(policy, obs, HaltRequest(codes, "r", "s"))
                     val active = obs.activeRollout!!
-                    val shouldHalt = active.release.contains(code) && active.status == RolloutStatus.IN_PROGRESS
+                    val shouldHalt =
+                        codes.any(active.release::contains) && active.status == RolloutStatus.IN_PROGRESS
                     (verdict.decision is Decision.Halt) shouldBe shouldHalt
                     verdict.events.size shouldBe (if (shouldHalt) 1 else 0)
                 }

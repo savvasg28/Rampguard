@@ -23,11 +23,20 @@ object Sanitise {
     fun source(value: String): String = text(value, MAX_SOURCE_LENGTH).ifBlank { "unknown" }
 }
 
-/** Halt the active release in Play, if its version codes include [versionCode]. */
+/**
+ * Halt the active release in Play, if its version codes include any of [versionCodes]. A list lets a workflow pass
+ * the `version-codes` output of a release that ships several APKs or bundles.
+ */
 data class HaltRequest(
-    val versionCode: Long,
+    val versionCodes: List<Long>,
     val reason: String,
     val source: String,
 ) {
+    init {
+        require(versionCodes.isNotEmpty()) { "a halt needs at least one versionCode" }
+    }
+
+    constructor(versionCode: Long, reason: String, source: String) : this(listOf(versionCode), reason, source)
+
     fun sanitised(): HaltRequest = copy(reason = Sanitise.reason(reason), source = Sanitise.source(source))
 }

@@ -40,7 +40,7 @@ export default {
       },
       body: JSON.stringify({
         event_type: "rollout-halt",
-        client_payload: { source: "sentry", reason: title.slice(0, 200), versionCode: Number(match[1]) },
+        client_payload: { source: "sentry", reason: title.slice(0, 200), "version-code": Number(match[1]) },
       }),
     });
     return new Response(response.ok ? "halt dispatched" : `github said ${response.status}`, {

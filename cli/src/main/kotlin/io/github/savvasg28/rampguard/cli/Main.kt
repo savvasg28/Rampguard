@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.savvasg28.rampguard.core.model.HaltRequest
@@ -108,12 +109,12 @@ class Halt(
     wiring: WiringFactory,
 ) : PolicyCommand("halt", wiring) {
     override fun help(context: Context): String =
-        "Halt the live release in Play if its version code matches. Idempotent."
+        "Halt the live release in Play if one of its version codes matches. Idempotent."
 
-    private val versionCode: Long by option(
+    private val versionCodes: List<Long> by option(
         "--version-code",
-        help = "versionCode of the rollout to halt",
-    ).long().required()
+        help = "versionCode of the rollout to halt; several, comma-separated, halt if any of them is live",
+    ).long().split(",").required()
     private val reason: String by option(
         "--reason",
         help = "Why; recorded in the audit and the outputs",
@@ -123,7 +124,7 @@ class Halt(
 
     override fun run() {
         val policy = loadPolicy()
-        val request = HaltRequest(versionCode, reason, source)
+        val request = HaltRequest(versionCodes, reason, source)
         val outcome = runBlocking { wire(policy).runner(policy, dryRun) { echo(it) }.halt(request) }
         exit(outcome)
     }
