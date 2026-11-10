@@ -59,6 +59,12 @@ outputs:
   rejected:
     description: Name of a release that Play review rejected, or empty.
     value: ${{ steps.run.outputs.rejected }}
+  summary:
+    description: One line saying what the run did, ready to post to a chat. Set on every run, including a dry run.
+    value: ${{ steps.run.outputs.summary }}
+  record:
+    description: The whole run as one JSON object, for fromJSON(). Holds every other output, typed, plus app, command, at, dry-run, decision and notes.
+    value: ${{ steps.run.outputs.record }}
 
 runs:
   using: composite

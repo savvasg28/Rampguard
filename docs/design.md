@@ -87,9 +87,15 @@ outputs ([ADR 0013](adr/0013-report-through-step-outputs.md)).
 | `reason`, `source` | The sanitised halt request, on `halted`. |
 | `ready-to-publish` | A release approved by review that a person has to publish. |
 | `rejected` | A release rejected by review. |
+| `summary` | One line saying what the run did, including what a dry run would have done. |
+| `record` | Every output above as one JSON object with typed values, plus `app`, `command`, `at`, `dry-run`, `decision` and `notes`. |
+
+The outputs are layered so that the common case costs one expression: `summary` for a message, the flat outputs for
+conditions and tool inputs, `record` for everything else. A new value goes into `record` first and becomes a flat
+output only when workflows need it in an `if:`.
 
 Every output is always written, empty when it does not apply, so a workflow expression never meets an undefined value.
-The names are a contract: add outputs, never rename them. Because runs keep no memory, a release that waits for a
+The names are a contract: add outputs, never rename them. The same holds for the field names inside `record`. Because runs keep no memory, a release that waits for a
 person appears in `ready-to-publish` on every run that sees it; the workflow decides whether to remind people daily.
 
 ## Architecture

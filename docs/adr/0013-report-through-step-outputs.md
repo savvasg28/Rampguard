@@ -37,3 +37,19 @@ adapters are removed.
   people daily is a workflow decision.
 - The `v1` jar still accepts `notify.slackWebhookEnv` and posts to Slack itself; the next release rejects `notify`
   with a pointer to this record.
+
+## Amendment, 2026-11-10: three layers of output
+
+The flat outputs made the common case expensive. A one-line Slack message needed five of them, and printed `% -> %`
+on a halt or a failure. Two outputs are added, so the outputs form layers in the sense of Jake Wharton's
+[slope-intercept library design](https://jakewharton.com/slope-intercept-library-design/): a cheap layer for most
+uses, and lower layers for more control.
+
+- `summary`: one line saying what the run did, including what a dry run would have done. A chat step posts it as is.
+- The existing flat outputs, unchanged, for `if:` conditions and tool inputs.
+- `record`: the whole run as one JSON object with the same names and typed values, plus `app`, `command`, `at`,
+  `dry-run`, `decision` and `notes`. A new value goes here first, so the flat outputs grow only when workflows need a
+  value in an `if:`.
+
+The names inside `record` are under the same contract as the outputs: add, never rename. Both outputs are additive,
+so `@v1` keeps working.

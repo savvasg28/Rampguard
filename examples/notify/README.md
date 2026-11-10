@@ -4,11 +4,12 @@ Rampguard sends nothing itself. It sets step outputs, and a step after it tells 
 below is one step to paste after the `rampguard` step in `rollout-tick.yml` or `rollout-command.yml`. Each holds its
 own secret; Rampguard never sees it.
 
-The outputs are listed in the [README](../../README.md#tell-your-tools).
+The outputs are listed in the [README](../../README.md#tell-your-tools). Start with `summary`; use the single values
+or `record` when a tool needs fields of its own.
 
 ## Slack
 
-One line per step, halt or failure.
+One line per step, halt or failure. `summary` is the whole message; `toJSON` quotes it safely.
 
 ```yaml
 - name: Tell Slack
@@ -18,7 +19,7 @@ One line per step, halt or failure.
     webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
     webhook-type: incoming-webhook
     payload: |
-      text: "${{ steps.rampguard.outputs.release-name }}: ${{ steps.rampguard.outputs.event }} ${{ steps.rampguard.outputs.from-percent }}% -> ${{ steps.rampguard.outputs.to-percent }}% (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run>)"
+      text: ${{ toJSON(steps.rampguard.outputs.summary) }}
 ```
 
 A reminder while a release waits for someone to press publish. Runs keep no memory, so this fires on every run that

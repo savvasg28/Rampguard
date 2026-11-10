@@ -86,14 +86,22 @@ A step after it reads the outputs and calls the tool's own action:
     command: tick
     play-credentials: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
 
-- if: steps.rampguard.outputs.event == 'advanced'
+- if: steps.rampguard.outputs.event != 'none'
   uses: slackapi/slack-github-action@v4
   with:
     webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
     webhook-type: incoming-webhook
     payload: |
-      text: "${{ steps.rampguard.outputs.release-name }} is now at ${{ steps.rampguard.outputs.to-percent }}%"
+      text: ${{ toJSON(steps.rampguard.outputs.summary) }}
 ```
+
+The outputs come in three layers. Use the one that fits and drop to the next only when you need more.
+
+| Layer | Output | Use it for |
+|---|---|---|
+| Message | `summary` | One line to post as it is, for example `com.example.app 5.25.0 (101) advanced 5% → 20%`. |
+| Values | the outputs below | `if:` conditions and the inputs of other actions. |
+| Everything | `record` | The whole run as JSON, read with `fromJSON(steps.rampguard.outputs.record)`. |
 
 | Output | Value |
 |---|---|
@@ -104,7 +112,12 @@ A step after it reads the outputs and calls the tool's own action:
 | `ready-to-publish` | A release that Play review approved and a person has to publish. Reported on every run that sees it. |
 | `rejected` | A release that Play review rejected. |
 
-Every output is always set, empty when it does not apply. The names are a contract: outputs are added, never renamed.
+In `record` the same names hold typed values: `version-codes`, `ready-to-publish` and `rejected` are arrays, the
+percentages are numbers, and a value that does not apply is `null`. It also carries `app`, `command`, `at`, `dry-run`,
+`decision` and `notes`.
+
+Every output is always set, empty when it does not apply. The names, including the field names inside `record`, are a
+contract: they are added, never renamed.
 Steps for Slack, Sentry releases, Datadog events and Grafana annotations are in
 [`examples/notify/`](examples/notify/README.md).
 
