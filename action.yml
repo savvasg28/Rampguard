@@ -79,8 +79,8 @@ runs:
       env:
         # The jar this copy of the action runs. The release workflow rewrites both lines; pin the action ref
         # (savvasg28/Rampguard@v1.0.0) to pin the jar.
-        VERSION: v1.0.0
-        SHA256: "7f9311010631663b556611fa59db739d0171d2f30fed8d15c0e679ee44dce7e7"
+        VERSION: v1.1.0
+        SHA256: "bd46a9ad18701cc080ab40810fed03238601021830e76d8efeabbd94f7178f60"
       run: |
         set -euo pipefail
         jar="$RUNNER_TEMP/rampguard.jar"
