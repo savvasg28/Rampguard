@@ -22,8 +22,9 @@ stdout, the same text in the job summary, and GitHub step outputs. The action de
 `release-name`, `version-codes`, `from-percent`, `to-percent`, `reason`, `source`, `ready-to-publish`, `rejected`.
 Every output is always set, empty when it does not apply. The names are a contract: add, never rename.
 
-Notifying is the workflow's job. The example workflows carry working steps for Slack, Sentry, Datadog and Grafana,
-each gated on the outputs and each holding its own secret. The `notify` key, the `Notifier` port and the notifier
+Notifying is the workflow's job. `examples/notify/` carries working steps for Slack, Sentry, Datadog and Grafana,
+each gated on the outputs and each holding its own secret. The example workflows themselves contain only the
+Rampguard step, so an installer starts from the smallest working file and adds what they use. The `notify` key, the `Notifier` port and the notifier
 adapters are removed.
 
 ## Consequences

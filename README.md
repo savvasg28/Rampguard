@@ -45,8 +45,7 @@ already alert from; they tell Rampguard to halt.
 1. Add the repository secret `PLAY_SERVICE_ACCOUNT_JSON`: the JSON key of a Play service account that can see this app
    only, with *View app information* and *Release to production* permissions.
 2. Copy [`examples/workflows/rollout-tick.yml`](examples/workflows/rollout-tick.yml) and
-   [`examples/workflows/rollout-command.yml`](examples/workflows/rollout-command.yml) into `.github/workflows/`. Keep
-   the notification steps you want and delete the rest; each needs its own secret.
+   [`examples/workflows/rollout-command.yml`](examples/workflows/rollout-command.yml) into `.github/workflows/`.
 3. In both workflow files, set the concurrency group to your package name.
 4. Add `.github/rampguard.yml` (see [Configuration](#configuration)).
 5. From the Actions tab, run the tick workflow once with **dry-run** selected, then read the job summary. The run
@@ -107,7 +106,8 @@ A step after it reads the outputs and calls the tool's own action:
 | `rejected` | A release that Play review rejected. |
 
 Every output is always set, empty when it does not apply. The names are a contract: outputs are added, never renamed.
-The example tick workflow has working steps for Slack, Sentry releases, Datadog events and Grafana annotations.
+Steps for Slack, Sentry releases, Datadog events and Grafana annotations are in
+[`examples/notify/`](examples/notify/README.md).
 
 ## Halt a rollout
 
