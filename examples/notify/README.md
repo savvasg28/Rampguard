@@ -67,7 +67,7 @@ An event on the event stream, tagged for dashboards and monitors.
     api-key: ${{ secrets.DATADOG_API_KEY }}
     events: |
       - title: "Rollout ${{ steps.rampguard.outputs.release-name }}: ${{ steps.rampguard.outputs.event }}"
-        text: "${{ steps.rampguard.outputs.from-percent }}% -> ${{ steps.rampguard.outputs.to-percent }}% ${{ steps.rampguard.outputs.reason }}"
+        text: ${{ toJSON(steps.rampguard.outputs.summary) }}
         alert_type: ${{ steps.rampguard.outputs.event == 'failed' && 'error' || 'info' }}
         tags:
           - "app:com.example.app"

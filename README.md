@@ -179,7 +179,7 @@ bin/rampguard tick --dry-run --config ~/rampguard-myapp.yml
 ./gradlew :cli:run --args="validate --config examples/rampguard.yml"
 ```
 
-Design: [`docs/design.md`](docs/design.md). Conventions: [`CLAUDE.md`](CLAUDE.md).
+Design: [`docs/design.md`](docs/design.md). Conventions: [`AGENTS.md`](AGENTS.md).
 
 ## License
 

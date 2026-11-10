@@ -27,6 +27,21 @@ boundary. Give each sender a fine-grained token limited to that repository, and 
 Rampguard treats `reason` and `source` as untrusted text: it removes control characters, collapses whitespace and
 truncates them, and never interpolates them into a shell command.
 
+## Untrusted text in the outputs
+
+The `reason` and `source` outputs, and the `summary` and `record` outputs that contain them, carry text chosen by
+whoever sent the halt. Rampguard's sanitising removes control characters but leaves quotes, `$` and backticks, so
+the text is not safe to paste into a shell script. In the steps after Rampguard:
+
+- Pass these outputs to a `run:` script through `env:` and use `"$VARIABLE"`. Never write
+  `${{ steps.rampguard.outputs.summary }}` inside `run:`.
+- Inside a `with:` value that another action parses as JSON or YAML, wrap them in `toJSON(...)`, as the Slack and
+  Datadog recipes in `examples/notify/` do.
+
+`event`, `version-codes` and the percentages are produced by Rampguard and contain only known words, digits, commas
+and dots. `release-name`, `ready-to-publish` and `rejected` come from Play and hold whatever the person who created
+the release typed; treat them like `reason`.
+
 ## What Rampguard never does
 
 - Write to Play during a dry run. The runner skips the write and a second guard refuses it.

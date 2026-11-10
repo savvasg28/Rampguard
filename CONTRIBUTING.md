@@ -23,7 +23,7 @@ You need JDK 21. Everything else comes through the Gradle wrapper.
 | `docs/` | The design document and the architecture decision records. |
 | `examples/` | The configuration file, the two workflows that installers copy, and the halt and notify recipes. |
 
-`CLAUDE.md` lists the architecture rules that the build enforces. `docs/design.md` describes the behaviour.
+`AGENTS.md` lists the architecture rules that the build enforces, for people and coding agents alike. `docs/design.md` describes the behaviour.
 
 ## Make a change
 
