@@ -2,8 +2,9 @@
 
 ## Report a vulnerability
 
-Email savvasg28@googlemail.com with a description, the affected version and steps to reproduce. Do not open a public
-issue for a security problem. You will get an acknowledgement within three working days and a fix or a mitigation
+Report it privately through GitHub: open the repository's **Security** tab and choose **Report a vulnerability**, or go
+to https://github.com/savvasg28/Rampguard/security/advisories/new. Include a description, the affected version and
+steps to reproduce. Do not open a public issue for a security problem. You will get an acknowledgement within three working days and a fix or a mitigation
 plan within thirty.
 
 ## What Rampguard can touch
