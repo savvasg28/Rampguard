@@ -32,9 +32,12 @@ object Reasons {
     ) = "halt requested by $source: $reason"
 
     fun haltIgnoredVersion(
-        versionCode: Long,
+        versionCodes: List<Long>,
         active: ReleaseId?,
-    ) = "versionCode $versionCode is not the active rollout" + (active?.let { " ($it)" } ?: "")
+    ) = (
+        versionCodes.singleOrNull()?.let { "versionCode $it is not the active rollout" }
+            ?: "none of versionCodes ${versionCodes.joinToString(",")} is the active rollout"
+    ) + (active?.let { " ($it)" } ?: "")
 
     fun haltIgnoredAlreadyHalted(release: ReleaseId) = "release $release is already halted"
 

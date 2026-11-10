@@ -9,6 +9,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.kotest.matchers.string.shouldStartWith
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -74,9 +75,12 @@ class CommandsTest {
         result.stdout shouldContain "decision: Advance(to=20%) applied=true"
         result.stdout shouldContain "event: advanced:v101[101]:5%->20%"
         dir.resolve("summary.md").readText() shouldContain "decision: Advance(to=20%) applied=true"
-        dir.resolve("outputs.txt").readText() shouldBe
+        val outputs = dir.resolve("outputs.txt").readText()
+        outputs shouldStartWith
             "event=advanced\nrelease-name=v101\nversion-codes=101\nfrom-percent=5\nto-percent=20\n" +
-            "reason=\nsource=\nready-to-publish=\nrejected=\n"
+            "reason=\nsource=\nready-to-publish=\nrejected=\n" +
+            "summary=com.example.app v101 (101) advanced 5% → 20%\nrecord={\"event\":\"advanced\","
+        outputs.lines().filter { it.isNotEmpty() }.map { it.substringBefore("=") } shouldBe StepOutputs.NAMES
     }
 
     @Test
@@ -111,6 +115,13 @@ class CommandsTest {
         result.stdout shouldNotContain "\u0000"
 
         run("halt", "--version-code", "999").stdout shouldContain "versionCode 999 is not the active rollout"
+    }
+
+    @Test
+    fun `halt takes the version-codes output as it is`() {
+        val result = run("halt", "--version-code", "100,101", "--source", "workflow")
+        result.statusCode shouldBe EXIT_OK
+        play.writes shouldContainExactly listOf("halt v101[101]")
     }
 
     @Test

@@ -19,7 +19,7 @@ inputs:
       Alternatively authenticate with google-github-actions/auth before this step and leave this empty.
     default: ""
   version-code:
-    description: For halt, the versionCode of the release to halt. Non-digits are stripped, so a tag value like version_code:101 works.
+    description: For halt, the version code of the release to halt. Every run of digits counts as one code and the halt applies if any of them is live, so version_code:101 and the version-codes output (101,102) both work.
     default: ""
   reason:
     description: For halt, why. Recorded in the audit and the outputs.
@@ -30,12 +30,6 @@ inputs:
   dry-run:
     description: Decide and report, but write nothing to Play. Use it once to check the install.
     default: "false"
-  rampguard-version:
-    description: The release whose jar to run. Pinned to the version this copy of the action shipped with; override it together with rampguard-sha256.
-    default: v1.0.0
-  rampguard-sha256:
-    description: Expected SHA-256 of that jar. The download is refused if it does not match.
-    default: "7f9311010631663b556611fa59db739d0171d2f30fed8d15c0e679ee44dce7e7"
 
 outputs:
   event:
@@ -65,6 +59,12 @@ outputs:
   rejected:
     description: Name of a release that Play review rejected, or empty.
     value: ${{ steps.run.outputs.rejected }}
+  summary:
+    description: One line saying what the run did, ready to post to a chat. Set by tick and halt, including a dry run; empty for status and validate.
+    value: ${{ steps.run.outputs.summary }}
+  record:
+    description: The whole run as one JSON object, for fromJSON(). Holds every other output, typed, plus app, command, at, dry-run, decision and notes. Set by tick and halt; empty for status and validate.
+    value: ${{ steps.run.outputs.record }}
 
 runs:
   using: composite
@@ -77,8 +77,10 @@ runs:
     - name: Download rampguard
       shell: bash
       env:
-        VERSION: ${{ inputs.rampguard-version }}
-        SHA256: ${{ inputs.rampguard-sha256 }}
+        # The jar this copy of the action runs. The release workflow rewrites both lines; pin the action ref
+        # (savvasg28/Rampguard@v1.0.0) to pin the jar.
+        VERSION: v1.0.0
+        SHA256: "7f9311010631663b556611fa59db739d0171d2f30fed8d15c0e679ee44dce7e7"
       run: |
         set -euo pipefail
         jar="$RUNNER_TEMP/rampguard.jar"
@@ -120,7 +122,7 @@ runs:
           args+=(--dry-run)
         fi
         if [ "$COMMAND" = "halt" ]; then
-          VERSION_CODE="$(printf '%s' "$VERSION_CODE" | tr -cd '0-9')"
+          VERSION_CODE="$(printf '%s' "$VERSION_CODE" | { grep -oE '[0-9]+' || true; } | paste -sd, -)"
           [ -n "$VERSION_CODE" ] || { echo "::error::halt needs version-code" >&2; exit 2; }
           args+=(--version-code "$VERSION_CODE" --reason "$REASON" --source "$SOURCE")
         fi

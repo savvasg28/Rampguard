@@ -47,7 +47,13 @@ class Simulation(
         versionCode: Long,
         reason: String = "alert",
         source: String = "datadog",
-    ): RunOutcome = runner.halt(HaltRequest(versionCode, reason, source)).also { timeline += entry(it) }
+    ): RunOutcome = halt(listOf(versionCode), reason, source)
+
+    suspend fun halt(
+        versionCodes: List<Long>,
+        reason: String = "alert",
+        source: String = "datadog",
+    ): RunOutcome = runner.halt(HaltRequest(versionCodes, reason, source)).also { timeline += entry(it) }
 
     fun auditText(): String = AuditRenderer.renderAll(audit.records)
 

@@ -45,11 +45,9 @@ already alert from; they tell Rampguard to halt.
 1. Add the repository secret `PLAY_SERVICE_ACCOUNT_JSON`: the JSON key of a Play service account that can see this app
    only, with *View app information* and *Release to production* permissions.
 2. Copy [`examples/workflows/rollout-tick.yml`](examples/workflows/rollout-tick.yml) and
-   [`examples/workflows/rollout-command.yml`](examples/workflows/rollout-command.yml) into `.github/workflows/`. Keep
-   the notification steps you want and delete the rest; each needs its own secret.
-3. In both workflow files, set the concurrency group to your package name.
-4. Add `.github/rampguard.yml` (see [Configuration](#configuration)).
-5. From the Actions tab, run the tick workflow once with **dry-run** selected, then read the job summary. The run
+   [`examples/workflows/rollout-command.yml`](examples/workflows/rollout-command.yml) into `.github/workflows/`.
+3. Add `.github/rampguard.yml` (see [Configuration](#configuration)).
+4. From the Actions tab, run the tick workflow once with **dry-run** selected, then read the job summary. The run
    reports what it would do and writes nothing.
 
 From the next scheduled run on, Rampguard steps the live release.
@@ -88,14 +86,22 @@ A step after it reads the outputs and calls the tool's own action:
     command: tick
     play-credentials: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
 
-- if: steps.rampguard.outputs.event == 'advanced'
+- if: steps.rampguard.outputs.event != 'none'
   uses: slackapi/slack-github-action@v4
   with:
     webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
     webhook-type: incoming-webhook
     payload: |
-      text: "${{ steps.rampguard.outputs.release-name }} is now at ${{ steps.rampguard.outputs.to-percent }}%"
+      text: ${{ toJSON(steps.rampguard.outputs.summary) }}
 ```
+
+The outputs come in three layers. Use the one that fits and drop to the next only when you need more.
+
+| Layer | Output | Use it for |
+|---|---|---|
+| Message | `summary` | One line to post as it is, for example `com.example.app 5.25.0 (101) advanced 5% → 20%`. |
+| Values | the outputs below | `if:` conditions and the inputs of other actions. |
+| Everything | `record` | The whole run as JSON, read with `fromJSON(steps.rampguard.outputs.record)`. |
 
 | Output | Value |
 |---|---|
@@ -106,8 +112,14 @@ A step after it reads the outputs and calls the tool's own action:
 | `ready-to-publish` | A release that Play review approved and a person has to publish. Reported on every run that sees it. |
 | `rejected` | A release that Play review rejected. |
 
-Every output is always set, empty when it does not apply. The names are a contract: outputs are added, never renamed.
-The example tick workflow has working steps for Slack, Sentry releases, Datadog events and Grafana annotations.
+In `record` the same names hold typed values: `version-codes`, `ready-to-publish` and `rejected` are arrays, the
+percentages are numbers, and a value that does not apply is `null`. It also carries `app`, `command`, `at`, `dry-run`,
+`decision` and `notes`.
+
+`tick` and `halt` set every output, empty when it does not apply; `status` and `validate` set none. The names, including the field names inside `record`, are a
+contract: they are added, never renamed.
+Steps for Slack, Sentry releases, Datadog events and Grafana annotations are in
+[`examples/notify/`](examples/notify/README.md).
 
 ## Halt a rollout
 
@@ -117,10 +129,10 @@ Send a `repository_dispatch` event to the app repository:
 curl -X POST https://api.github.com/repos/OWNER/REPO/dispatches \
   -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/vnd.github+json" \
-  -d '{"event_type":"rollout-halt","client_payload":{"source":"sentry","reason":"crash spike","versionCode":101}}'
+  -d '{"event_type":"rollout-halt","client_payload":{"source":"sentry","reason":"crash spike","version-code":101}}'
 ```
 
-The command workflow halts the release in Play if `versionCode` belongs to the live release. A second halt, or a halt
+The command workflow halts the release in Play if `version-code` belongs to the live release. A second halt, or a halt
 for another version code, does nothing. A person can also halt from the Actions tab.
 
 Anyone whose token can dispatch to the repository can halt the rollout. Use a fine-grained token per sender.
@@ -167,7 +179,7 @@ bin/rampguard tick --dry-run --config ~/rampguard-myapp.yml
 ./gradlew :cli:run --args="validate --config examples/rampguard.yml"
 ```
 
-Design: [`docs/design.md`](docs/design.md). Conventions: [`CLAUDE.md`](CLAUDE.md).
+Design: [`docs/design.md`](docs/design.md). Conventions: [`AGENTS.md`](AGENTS.md).
 
 ## License
 

@@ -56,8 +56,8 @@ object Engine {
         val playError = obs.playError
         if (playError != null) return ctx.playFailed(playError)
         val active = obs.activeRollout ?: return ctx.finish(Decision.NoOp(Reasons.HALT_IGNORED_NO_ROLLOUT))
-        if (!active.release.contains(request.versionCode)) {
-            return ctx.finish(Decision.NoOp(Reasons.haltIgnoredVersion(request.versionCode, active.release)))
+        if (request.versionCodes.none(active.release::contains)) {
+            return ctx.finish(Decision.NoOp(Reasons.haltIgnoredVersion(request.versionCodes, active.release)))
         }
         if (active.status == RolloutStatus.HALTED) {
             return ctx.finish(Decision.NoOp(Reasons.haltIgnoredAlreadyHalted(active.release)))

@@ -58,9 +58,9 @@ jobs:
           SHA256: ${{ steps.sum.outputs.sha256 }}
         run: |
           set -euo pipefail
-          sed -i -E "s/^(    default: )v[0-9]+(\.[0-9]+)*$/\1${TAG}/" action.yml
-          sed -i -E "s/^(    default: \")[0-9a-f]{64}(\")$/\1${SHA256}\2/" action.yml
-          grep -q "default: ${TAG}$" action.yml && grep -q "$SHA256" action.yml
+          sed -i -E "s/^(        VERSION: )v[0-9]+(\.[0-9]+)*$/\1${TAG}/" action.yml
+          sed -i -E "s/^(        SHA256: \")[0-9a-f]{64}(\")$/\1${SHA256}\2/" action.yml
+          grep -q "^        VERSION: ${TAG}$" action.yml && grep -q "^        SHA256: \"${SHA256}\"$" action.yml
       - name: Commit, tag the version and move the major tag
         env:
           VERSION: ${{ inputs.version }}

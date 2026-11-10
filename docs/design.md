@@ -56,9 +56,14 @@ A manual run of the tick workflow does exactly what a scheduled run does.
 
 ### `halt`
 
-The run halts the live release in Play if the requested `versionCode` is one of its version codes. If the version code
-belongs to another release, or the release is already halted, the run does nothing. The `reason` and `source` fields
-are untrusted text: the run removes control characters, collapses whitespace and truncates them before use.
+The run halts the live release in Play if any requested version code is one of its version codes, so a workflow can
+pass the `version-codes` output as it is. If the version codes belong to another release, or the release is already
+halted, the run does nothing. The `reason` and `source` fields are untrusted text: the run removes control characters,
+collapses whitespace and truncates them before use.
+
+The version code is spelled `version-code` in every place a person or a tool writes it: the action input, the CLI
+option and the `repository_dispatch` payload. The payload's older key `versionCode` is still accepted. The output is
+`version-codes`, plural, because a release can ship several.
 
 ### `status`
 
@@ -87,9 +92,16 @@ outputs ([ADR 0013](adr/0013-report-through-step-outputs.md)).
 | `reason`, `source` | The sanitised halt request, on `halted`. |
 | `ready-to-publish` | A release approved by review that a person has to publish. |
 | `rejected` | A release rejected by review. |
+| `summary` | One line saying what the run did, including what a dry run would have done. |
+| `record` | Every output above as one JSON object with typed values, plus `app`, `command`, `at`, `dry-run`, `decision` and `notes`. |
 
-Every output is always written, empty when it does not apply, so a workflow expression never meets an undefined value.
-The names are a contract: add outputs, never rename them. Because runs keep no memory, a release that waits for a
+The outputs are layered so that the common case costs one expression: `summary` for a message, the flat outputs for
+conditions and tool inputs, `record` for everything else. A new value goes into `record` first and becomes a flat
+output only when workflows need it in an `if:`.
+
+`tick` and `halt` write every output, empty when it does not apply, so a workflow expression never meets an undefined
+value. `status` and `validate` write no outputs; `status` prints its JSON on stdout instead.
+The names are a contract: add outputs, never rename them. The same holds for the field names inside `record`. Because runs keep no memory, a release that waits for a
 person appears in `ready-to-publish` on every run that sees it; the workflow decides whether to remind people daily.
 
 ## Architecture
@@ -116,7 +128,8 @@ The modules follow three rules:
 - Every call to the outside world goes through a port and carries a timeout.
 
 Two runs for the same app must not overlap, because both would read Play before either writes. The example workflows
-share one concurrency group per app. As a second line, the Play adapter re-reads the track inside its edit before it
+share one concurrency group named after the repository, so an installer has nothing to edit. A repository with
+several apps serialises their runs, which is slower but safe. As a second line, the Play adapter re-reads the track inside its edit before it
 writes ([ADR 0009](adr/0009-play-adapters.md)).
 
 ## Configuration

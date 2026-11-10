@@ -38,7 +38,7 @@ exports.rampguardHaltOnVelocityAlert = onVelocityAlertPublished({ secrets: [gith
     },
     body: JSON.stringify({
       event_type: "rollout-halt",
-      client_payload: { source: "crashlytics", reason: reason.slice(0, 200), versionCode: Number(code) },
+      client_payload: { source: "crashlytics", reason: reason.slice(0, 200), "version-code": Number(code) },
     }),
   });
 

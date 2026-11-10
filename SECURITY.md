@@ -2,8 +2,9 @@
 
 ## Report a vulnerability
 
-Email savvasg28@googlemail.com with a description, the affected version and steps to reproduce. Do not open a public
-issue for a security problem. You will get an acknowledgement within three working days and a fix or a mitigation
+Report it privately through GitHub: open the repository's **Security** tab and choose **Report a vulnerability**, or go
+to https://github.com/savvasg28/Rampguard/security/advisories/new. Include a description, the affected version and
+steps to reproduce. Do not open a public issue for a security problem. You will get an acknowledgement within three working days and a fix or a mitigation
 plan within thirty.
 
 ## What Rampguard can touch
@@ -26,6 +27,21 @@ Anyone whose token can send `repository_dispatch` to the app repository can halt
 boundary. Give each sender a fine-grained token limited to that repository, and revoke it when the sender goes away.
 Rampguard treats `reason` and `source` as untrusted text: it removes control characters, collapses whitespace and
 truncates them, and never interpolates them into a shell command.
+
+## Untrusted text in the outputs
+
+The `reason` and `source` outputs, and the `summary` and `record` outputs that contain them, carry text chosen by
+whoever sent the halt. Rampguard's sanitising removes control characters but leaves quotes, `$` and backticks, so
+the text is not safe to paste into a shell script. In the steps after Rampguard:
+
+- Pass these outputs to a `run:` script through `env:` and use `"$VARIABLE"`. Never write
+  `${{ steps.rampguard.outputs.summary }}` inside `run:`.
+- Inside a `with:` value that another action parses as JSON or YAML, wrap them in `toJSON(...)`, as the Slack and
+  Datadog recipes in `examples/notify/` do.
+
+`event`, `version-codes` and the percentages are produced by Rampguard and contain only known words, digits, commas
+and dots. `release-name`, `ready-to-publish` and `rejected` come from Play and hold whatever the person who created
+the release typed; treat them like `reason`.
 
 ## What Rampguard never does
 

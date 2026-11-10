@@ -1,6 +1,6 @@
 # Copy to .github/workflows/rollout-tick.yml in the app repository.
 # One scheduled run = one step of the staged rollout. Choose the cron to match how often you want a step.
-# Rampguard reports what it did through step outputs; the steps after it tell your tools. Keep the ones you use.
+# To tell Slack, Sentry, Datadog or Grafana what a run did, add a step from examples/notify/ after the rampguard step.
 name: Rollout tick
 
 on:
@@ -14,7 +14,7 @@ on:
         default: false
 
 concurrency:
-  group: rampguard-com.example.app   # one group per app, shared with rollout-command.yml
+  group: rampguard-${{ github.repository }}   # shared with rollout-command.yml, so runs never overlap
   cancel-in-progress: false
 
 permissions:
@@ -32,64 +32,3 @@ jobs:
           command: tick
           dry-run: ${{ inputs.dry-run || false }}
           play-credentials: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-
-      # Slack: one line per step, halt or waiting release.
-      - name: Tell Slack
-        if: ${{ !cancelled() && steps.rampguard.outputs.event != 'none' }}
-        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: "${{ steps.rampguard.outputs.release-name }}: ${{ steps.rampguard.outputs.event }} ${{ steps.rampguard.outputs.from-percent }}% -> ${{ steps.rampguard.outputs.to-percent }}% (<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|run>)"
-
-      - name: Remind Slack of a release waiting to be published
-        if: ${{ !cancelled() && steps.rampguard.outputs.ready-to-publish != '' }}
-        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: "${{ steps.rampguard.outputs.ready-to-publish }} is approved and waiting for someone to press publish in the Play Console."
-
-      # Sentry: a deploy per step on the release, so Release Health shows when each stage began.
-      # The release name must match what the app reports; Android SDKs default to "<package>@<versionName>+<versionCode>".
-      - name: Record the step in Sentry
-        if: ${{ steps.rampguard.outputs.event == 'advanced' || steps.rampguard.outputs.event == 'completed' }}
-        uses: getsentry/action-release@e6703d0b00208e0b3687ba660d18ab5af7892821 # v3.7.2
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: acme
-          SENTRY_PROJECT: android
-        with:
-          release: com.example.app@${{ steps.rampguard.outputs.release-name }}+${{ steps.rampguard.outputs.version-codes }}
-          environment: production
-          set_commits: skip
-
-      # Datadog: an event on the event stream, tagged for dashboards and monitors.
-      - name: Record the step in Datadog
-        if: ${{ steps.rampguard.outputs.event != 'none' }}
-        uses: masci/datadog@aadd4fb98a29438db71fae50c698cad8bc782ad3 # v2.0.7
-        with:
-          api-key: ${{ secrets.DATADOG_API_KEY }}
-          events: |
-            - title: "Rollout ${{ steps.rampguard.outputs.release-name }}: ${{ steps.rampguard.outputs.event }}"
-              text: "${{ steps.rampguard.outputs.from-percent }}% -> ${{ steps.rampguard.outputs.to-percent }}% ${{ steps.rampguard.outputs.reason }}"
-              alert_type: ${{ steps.rampguard.outputs.event == 'failed' && 'error' || 'info' }}
-              tags:
-                - "app:com.example.app"
-                - "release:${{ steps.rampguard.outputs.release-name }}"
-                - "event:${{ steps.rampguard.outputs.event }}"
-
-      # Grafana: an annotation, so dashboards show each stage as a vertical line over crash rate or latency.
-      - name: Annotate Grafana
-        if: ${{ steps.rampguard.outputs.event != 'none' }}
-        env:
-          GRAFANA_URL: https://acme.grafana.net
-          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
-          TEXT: "${{ steps.rampguard.outputs.release-name }}: ${{ steps.rampguard.outputs.event }} ${{ steps.rampguard.outputs.from-percent }}% -> ${{ steps.rampguard.outputs.to-percent }}%"
-          TAGS: '["rampguard", "com.example.app", "${{ steps.rampguard.outputs.event }}"]'
-        run: |
-          curl -sSf -X POST "$GRAFANA_URL/api/annotations" \
-            -H "Authorization: Bearer $GRAFANA_TOKEN" -H "Content-Type: application/json" \
-            -d "$(jq -n --arg text "$TEXT" --argjson tags "$TAGS" '{text: $text, tags: $tags}')"

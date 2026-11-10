@@ -3,7 +3,7 @@
 #
 #   curl -X POST https://api.github.com/repos/<owner>/<repo>/dispatches \
 #     -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" \
-#     -d '{"event_type":"rollout-halt","client_payload":{"source":"sentry","reason":"crash spike","versionCode":101}}'
+#     -d '{"event_type":"rollout-halt","client_payload":{"source":"sentry","reason":"crash spike","version-code":101}}'
 name: Rollout command
 
 on:
@@ -17,14 +17,14 @@ on:
         options: [status, halt]
         default: status
       version-code:
-        description: For halt, the versionCode of the release to halt
+        description: For halt, the version code of the release to halt
         default: ""
       reason:
         description: For halt, why
         default: manual
 
 concurrency:
-  group: rampguard-com.example.app   # same group as rollout-tick.yml, so a halt never races a tick
+  group: rampguard-${{ github.repository }}   # same group as rollout-tick.yml, so a halt never races a tick
   cancel-in-progress: false
 
 permissions:
@@ -39,16 +39,9 @@ jobs:
         uses: savvasg28/Rampguard@v1
         with:
           command: ${{ github.event_name == 'repository_dispatch' && 'halt' || inputs.command }}
-          version-code: ${{ github.event.client_payload.versionCode || inputs.version-code }}
+          version-code: ${{ github.event.client_payload.version-code || github.event.client_payload.versionCode || inputs.version-code }}
           reason: ${{ github.event.client_payload.reason || inputs.reason }}
           source: ${{ github.event.client_payload.source || github.actor }}
           play-credentials: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
 
-      - name: Tell Slack
-        if: ${{ !cancelled() && steps.rampguard.outputs.event == 'halted' }}
-        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: ":octagonal_sign: ${{ steps.rampguard.outputs.release-name }} halted by ${{ steps.rampguard.outputs.source }}: ${{ steps.rampguard.outputs.reason }}"
+      # To tell your tools about a halt, add a step from examples/notify/ here.
