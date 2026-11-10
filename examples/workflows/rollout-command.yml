@@ -24,7 +24,7 @@ on:
         default: manual
 
 concurrency:
-  group: rampguard-com.example.app   # same group as rollout-tick.yml, so a halt never races a tick
+  group: rampguard-${{ github.repository }}   # same group as rollout-tick.yml, so a halt never races a tick
   cancel-in-progress: false
 
 permissions:

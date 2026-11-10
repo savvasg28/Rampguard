@@ -46,9 +46,8 @@ already alert from; they tell Rampguard to halt.
    only, with *View app information* and *Release to production* permissions.
 2. Copy [`examples/workflows/rollout-tick.yml`](examples/workflows/rollout-tick.yml) and
    [`examples/workflows/rollout-command.yml`](examples/workflows/rollout-command.yml) into `.github/workflows/`.
-3. In both workflow files, set the concurrency group to your package name.
-4. Add `.github/rampguard.yml` (see [Configuration](#configuration)).
-5. From the Actions tab, run the tick workflow once with **dry-run** selected, then read the job summary. The run
+3. Add `.github/rampguard.yml` (see [Configuration](#configuration)).
+4. From the Actions tab, run the tick workflow once with **dry-run** selected, then read the job summary. The run
    reports what it would do and writes nothing.
 
 From the next scheduled run on, Rampguard steps the live release.

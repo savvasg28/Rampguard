@@ -116,7 +116,8 @@ The modules follow three rules:
 - Every call to the outside world goes through a port and carries a timeout.
 
 Two runs for the same app must not overlap, because both would read Play before either writes. The example workflows
-share one concurrency group per app. As a second line, the Play adapter re-reads the track inside its edit before it
+share one concurrency group named after the repository, so an installer has nothing to edit. A repository with
+several apps serialises their runs, which is slower but safe. As a second line, the Play adapter re-reads the track inside its edit before it
 writes ([ADR 0009](adr/0009-play-adapters.md)).
 
 ## Configuration

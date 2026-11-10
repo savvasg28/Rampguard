@@ -14,7 +14,7 @@ on:
         default: false
 
 concurrency:
-  group: rampguard-com.example.app   # one group per app, shared with rollout-command.yml
+  group: rampguard-${{ github.repository }}   # shared with rollout-command.yml, so runs never overlap
   cancel-in-progress: false
 
 permissions:
